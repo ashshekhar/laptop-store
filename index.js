@@ -4,6 +4,7 @@
 // 1. Vanilla JS    2. React.js     3. Node.js (Express.js is a framework of Node.js)
 
 // Node.js is to implement the server side, we run it on the server and is not limited to just a browser running our HTML, CSS and JS
+// There is no concept of files and folders in Node.js, everything is kind of a request
 
 // Just write node on the terminal and it enters the console mode
 // If you want to create your file like index.js and run, then be in the home directory (starter here) and type node index.js
@@ -48,9 +49,32 @@ const server = http.createServer((request, response) => {
   // Extracting query from the URL (basically the id part)
   const id = url.parse(request.url, true).query.id;
 
+  // 1. All Products Overview
   if (pathName === "/products" || pathName === "/") {
     response.writeHead(200, { "Content-type": "text/HTML" }); // 200 is the status code number if everything goes fine, just like 404 is error
-    response.end(`This is the products page!`);
+    // response.end(`This is the products page!`);
+
+    // Asynchronous file read, to avoid stopping the whole program waiting for this function to execute
+    fs.readFile(
+      `${__dirname}/templates/template-overview.html`,
+      "utf-8",
+      (error, data) => {
+        let overviewOutput = data;
+        fs.readFile(
+          `${__dirname}/templates/template-card.html`,
+          "utf-8",
+          (error, data) => {
+            const cardsOutput = laptopData
+              .map((el) => replaceTemplate(data, el))
+              .join("");
+            overviewOutput = overviewOutput.replace("{%CARDS%}", cardsOutput);
+            response.end(overviewOutput);
+          }
+        );
+      }
+    );
+
+    // 2. Laptop Details
   } else if (pathName === "/laptop" && id < laptopData.length) {
     response.writeHead(200, { "Content-type": "text/HTML" }); // 200 is the status code number if everything goes fine, just like 404 is error
     // response.end(`This is the laptop page for laptop id: ${id}!`); // Example URL -> http://127.0.0.1:1337/laptop?id=4
@@ -61,19 +85,22 @@ const server = http.createServer((request, response) => {
       "utf-8",
       (error, data) => {
         const laptop = laptopData[id];
-        let output = data.replace(/{%PRODUCTNAME%}/g, laptop.productName);
-        output = output.replace(/{%IMAGE%}/g, laptop.image);
-        output = output.replace(/{%PRICE%}/g, laptop.price);
-        output = output.replace(/{%DESCRIPTION%}/g, laptop.description);
-        output = output.replace(/{%SCREEN%}/g, laptop.screen);
-        output = output.replace(/{%CPU%}/g, laptop.cpu);
-        output = output.replace(/{%STORAGE%}/g, laptop.storage);
-        output = output.replace(/{%RAM%}/g, laptop.ram);
-
+        const output = replaceTemplate(data, laptop);
         response.end(output);
       }
     );
-  } else {
+  }
+
+  // 3. Route for Images
+  else if (/\.(jpg|jpeg|gif|png)$/i.test(pathName)) {
+    fs.readFile(`${__dirname}/data/img${pathName}`, (error, data) => {
+      response.writeHead(200, { "Content-type": "image/jpeg" });
+      response.end(data);
+    });
+  }
+
+  // 4. URL not found
+  else {
     response.writeHead(404, { "Content-type": "text/HTML" }); // 200 is the status code number if everything goes fine, just like 404 is error
     response.end(`URL was not found!`);
   }
@@ -87,3 +114,16 @@ server.listen(1337, "127.0.0.1", () => {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Templating -> Technique of coding one HTML template and using it for different ids, that is different URLs
+
+function replaceTemplate(originalHtml, laptop) {
+  let output = originalHtml.replace(/{%PRODUCTNAME%}/g, laptop.productName);
+  output = output.replace(/{%IMAGE%}/g, laptop.image);
+  output = output.replace(/{%PRICE%}/g, laptop.price);
+  output = output.replace(/{%DESCRIPTION%}/g, laptop.description);
+  output = output.replace(/{%SCREEN%}/g, laptop.screen);
+  output = output.replace(/{%CPU%}/g, laptop.cpu);
+  output = output.replace(/{%STORAGE%}/g, laptop.storage);
+  output = output.replace(/{%RAM%}/g, laptop.ram);
+  output = output.replace(/{%ID%}/g, laptop.id);
+  return output;
+}
