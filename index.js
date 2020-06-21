@@ -6,8 +6,13 @@
 // console.log("Second log");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Installing file system modules
+// Installing modules
+
+// File System
 const fs = require("fs");
+
+// HTTP for web servers
+const http = require("http");
 
 // ${__dirname} is the directory name, here starter (automatically)
 // utf-8 is the character encoding
@@ -17,4 +22,17 @@ const json = fs.readFileSync(`${__dirname}/data/data.json`, "utf-8");
 const laptopData = JSON.parse(json);
 console.log(laptopData);
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Node.js was originally created to create web servers
+
+// Create server
+const server = http.createServer((request, response) => {
+    console.log("Someone accessed our server");
+});
+
+// Listen to the port 
+// Type in 127.0.0.1:1337 on a browser to see the functionality
+
+server.listen(1337,'127.0.0.1', () => {
+    console.log("Listening to requests now")
+}); // Default port number -> 1337 and our localhost is 127.0.01
