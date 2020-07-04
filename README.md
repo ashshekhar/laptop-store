@@ -1,6 +1,6 @@
 # Laptop Store 💻
-# A simple implementation of Node.js
+A simple implementation of Node.js
 
 # App UI
-![UI]()
+![UI](https://github.com/ashshekhar/laptop-store/blob/master/App%20UI.png)
 
